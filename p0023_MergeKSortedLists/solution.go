@@ -9,12 +9,11 @@ import (
 
 // Definition for singly-linked list
 type ListNode struct {
-	fmt.Stringer
 	Val  int
 	Next *ListNode
 }
 
-func (l *ListNode) String() string {
+func toString(l *ListNode) string {
 	vals := make([]string, 0)
 	next := l
 	for next != nil {
@@ -27,7 +26,7 @@ func (l *ListNode) String() string {
 	return strings.Join(vals, ",")
 }
 
-func (l *ListNode) push(val int) {
+func push(l *ListNode, val int) {
 	next := l
 	for next != nil {
 		if next.Next == nil {
@@ -38,7 +37,7 @@ func (l *ListNode) push(val int) {
 	next.Next = &ListNode{Val: val, Next: nil}
 }
 
-func (l *ListNode) get(i int) int {
+func get(l *ListNode, i int) int {
 	counter := 0
 	next := l
 	for next != nil {
@@ -55,7 +54,7 @@ func (l *ListNode) get(i int) int {
 	return -1
 }
 
-func (l *ListNode) len() int {
+func size(l *ListNode) int {
 	counter := 0
 	next := l
 	for next != nil {
@@ -83,7 +82,7 @@ func walk(lists []*ListNode, walkers []*Walker, holder *Holder) {
 	for i := 0; i < len(walkers); i++ {
 		walker := walkers[i]
 
-		val := lists[walker.x].get(walker.y)
+		val := get(lists[walker.x], walker.y)
 		if val < minVal {
 			minVal = val
 			minWalker = walker
@@ -91,14 +90,16 @@ func walk(lists []*ListNode, walkers []*Walker, holder *Holder) {
 	}
 
 	if minWalker != nil {
-		val := lists[minWalker.x].get(minWalker.y)
+		val := get(lists[minWalker.x], minWalker.y)
 		if holder.result == nil {
 			holder.result = &ListNode{Val: val}
 		} else {
-			holder.result.push(val)
+			push(holder.result, val)
 		}
 
-		if minWalker.y + 1 >= lists[minWalker.x].len() {
+		if minWalker.y+1 < size(lists[minWalker.x]) {
+			minWalker.y++
+		} else {
 			var newWalkers []*Walker
 			for _, walker := range walkers {
 				if walker != minWalker {
@@ -106,8 +107,6 @@ func walk(lists []*ListNode, walkers []*Walker, holder *Holder) {
 				}
 			}
 			walkers = newWalkers
-		} else {
-			minWalker.y++
 		}
 
 		walk(lists, walkers, holder)
@@ -117,88 +116,13 @@ func walk(lists []*ListNode, walkers []*Walker, holder *Holder) {
 func mergeKLists(lists []*ListNode) *ListNode {
 	walkers := []*Walker{}
 	for i := range len(lists) {
-		walkers = append(walkers, &Walker{i, 0})
+		if lists[i] != nil {
+			walkers = append(walkers, &Walker{i, 0})
+		}
 	}
 	holder := &Holder{}
 	walk(lists, walkers, holder)
 	return holder.result
-}
-
-func mergeKLists2(lists []*ListNode) *ListNode {
-	var result *ListNode
-	ids := make([]int, len(lists))
-	realIds := make([]int, len(lists))
-	// vals := make([]int, len(lists))
-
-	maxLength := -1
-	for _, list := range lists {
-		if maxLength < list.len() {
-			maxLength = list.len()
-		}
-	}
-
-	for i := 0; i < maxLength; i++ {
-		//values := make([]int, 0)
-
-		for j := 0; j < len(lists); j++ {
-			list := lists[j]
-
-			if i < list.len() {
-				ids[j] = i
-				// vals[j] = list.get(i)
-			} else {
-				ids[j] = -1
-			}
-
-			
-		}
-
-		// fmt.Printf("%v\n", ids)
-		// fmt.Printf("%v\n\n", vals)
-
-		minJ := -1
-		minId := math.MaxInt
-		for j := 0; j < len(ids); j++ {
-			if minId > lists[j].get(ids[j]) {
-				minJ = j
-				minId = lists[j].get(ids[j])
-			}
-		}
-
-		minJnext := math.MaxInt
-		if minJ != -1 && minId + 1 < lists[minJ].len() {
-			minJnext = lists[minJ].get(minId + 1)
-		}
-
-		for j := 0; j < len(ids); j++ {
-			if j == minJ {
-				realIds[j] = j
-				continue
-			}
-			if lists[j].get(ids[j]) < minJnext {
-				realIds[j] = j
-			}
-		}
-
-		fmt.Printf("%v\n", realIds)
-	}
-
-	// for _, list := range lists {
-	// 	if result == nil {
-	// 		result = &ListNode{Val: list.Val, Next: nil}
-	// 	} else {
-	// 		// next := list
-	// 		// for next != nil {
-	// 		// 	if next.Next == nil {
-	// 		// 		break
-	// 		// 	}
-	// 		// 	next = next.Next
-	// 		// }
-	// 		result.push(list.Val)
-	// 	}
-	// }
-
-	return result
 }
 
 func main() {
@@ -207,5 +131,5 @@ func main() {
 	lists = append(lists, &ListNode{Val: 10, Next: &ListNode{Val: 30, Next: &ListNode{Val: 40, Next: nil}}})
 	lists = append(lists, &ListNode{Val: 2, Next: &ListNode{Val: 6, Next: nil}})
 	result := mergeKLists(lists)
-	fmt.Printf("%v", result)
+	fmt.Printf("%v", toString(result))
 }
